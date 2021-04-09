@@ -1,0 +1,28 @@
+version: '2.1'
+services:
+  nginx:
+    image: nginx
+    restart: always
+    depends_on:
+      - php
+    ports:
+      - 8097:80
+    volumes:
+      - ./services/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+    volumes_from:
+      - php
+    env_file: .env
+  php:
+    build: ./services/php
+    restart: always
+    depends_on:
+      - redis
+    volumes:
+      - ./htdocs:/var/www/html
+      - ./checker:/app/checker
+      - ./services/php/conf.d/custom-php.ini:/usr/local/etc/php/conf.d/zz-custom.ini
+      - ./services/php/.bashrc:/root/.bashrc
+    env_file: .env
+  redis:
+    image: "redis:alpine"
+    command: ["sh", "-c", "exec redis-server --requirepass \"${REDIS_PASSWORD}\""]
